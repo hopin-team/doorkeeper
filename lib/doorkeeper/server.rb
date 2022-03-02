@@ -20,7 +20,9 @@ module Doorkeeper
 
     # TODO: context should be the request
     def parameters
-      context.request.parameters
+      Doorkeeper::Helpers::ResourceIndicators.resource_identifier_from_request(
+        context.request.parameters, context.request,
+      )
     end
 
     def client
