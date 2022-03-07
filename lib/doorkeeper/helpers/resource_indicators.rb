@@ -2,7 +2,7 @@
 
 module Doorkeeper
   module Helpers
-    # The RFC for resouce indicators allows for multiple to be specified using this syntax:
+    # The RFC for resource indicators allows for multiple to be specified using this syntax:
     #  GET /as/authorization.oauth2?response_type=code
     #  ...
     #  &scope=calendar%20contacts
@@ -12,7 +12,7 @@ module Doorkeeper
     # The default ActionController query paramater parsing will not accept that as an array
     # so we've got to do it ourselves. Post body request parsing also sees the same issue.
     module ResourceIndicators
-      def self.resource_identifier_from_request(existing_params, request)
+      def self.resource_identifier_from_request(request, existing_params)
         resource_params = params_from_query(request)
         resource_params = resource_params.merge(params_from_post(request)) unless resource_params.key?("resource")
         resource_params = ActionController::Parameters.new(resource_params).slice(:resource).permit(resource: [])
@@ -20,24 +20,26 @@ module Doorkeeper
       end
 
       def self.params_from_post(request)
-        params = {}
-        if request.raw_post && !params.key?("resource")
-          parsed_body = CGI.parse(request.raw_post)
-          resources = parsed_body["resource"].presence || parsed_body["resource[]"].presence
-          params["resource"] = resources if resources
+        return {} unless request.raw_post
+
+        parsed_body = CGI.parse(request.raw_post)
+        resources = parsed_body["resource"].presence || parsed_body["resource[]"].presence
+        if resources
+          { "resource" => resources }
+        else
+          {}
         end
-        params
       end
 
       def self.params_from_query(request)
-        params = {}
         URI.parse(request.original_url).query.then do |query|
           if query
             resource = CGI.parse(query)["resource"]
-            params["resource"] = resource if resource
+            { "resource" => resource }
+          else
+            {}
           end
         end
-        params
       end
     end
   end

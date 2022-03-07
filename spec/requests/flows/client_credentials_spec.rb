@@ -93,7 +93,7 @@ RSpec.describe "Client Credentials Request" do
       expect(Doorkeeper::AccessToken.first.resource_indicators).to contain_exactly("http://example.com/resource1")
     end
 
-    scenario "with multiple resouce indicators" do
+    scenario "with multiple resource indicators" do
       client.update(name: "admin")
 
       headers = authorization client.uid, client.secret

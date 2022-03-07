@@ -2,7 +2,8 @@
 
 module Doorkeeper
   module OAuth
-    # ListLike
+    # ListLike is a mixin for the common functionality in both the
+    # ResourceIndicator and Scope sets.
     module ListLike
       extend ActiveSupport::Concern
       include Enumerable

@@ -86,8 +86,8 @@ module Doorkeeper
 
     def pre_auth_params
       Doorkeeper::Helpers::ResourceIndicators.resource_identifier_from_request(
-        params.slice(*pre_auth_param_fields).permit(*pre_auth_param_fields),
         request,
+        params.slice(*pre_auth_param_fields).permit(*pre_auth_param_fields),
       )
     end
 
