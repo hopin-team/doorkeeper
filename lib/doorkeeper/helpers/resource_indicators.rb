@@ -33,12 +33,9 @@ module Doorkeeper
 
       def self.params_from_query(request)
         URI.parse(request.original_url).query.then do |query|
-          if query
-            resource = CGI.parse(query)["resource"]
-            { "resource" => resource }
-          else
-            {}
-          end
+          return {} unless query
+
+          { "resource" => CGI.parse(query)["resource"] }
         end
       end
     end
