@@ -10,9 +10,9 @@ module Doorkeeper
       validate :client,       error: :invalid_client
       validate :client_match, error: :invalid_grant
       validate :scope,        error: :invalid_scope
+      validate :resource_indicators, error: :invalid_target
 
-      attr_reader :access_token, :client, :credentials, :refresh_token
-      attr_reader :missing_param
+      attr_reader :access_token, :client, :credentials, :refresh_token, :missing_param
 
       def initialize(server, refresh_token, credentials, parameters = {})
         @server = server
@@ -21,9 +21,18 @@ module Doorkeeper
         @original_scopes = parameters[:scope] || parameters[:scopes]
         @refresh_token_parameter = parameters[:refresh_token]
         @client = load_client(credentials) if credentials
+        @resource = parameters[:resource]
       end
 
       private
+
+      def validate_resource_indicators
+        Helpers::ResourceIndicatorsChecker.valid?(@refresh_token, resource_indicators)
+      end
+
+      def resource_indicators
+        @resource_indicators ||= ResourceIndicators.from_array(@resource)
+      end
 
       def load_client(credentials)
         server_config.application_model.by_uid_and_secret(credentials.uid, credentials.secret)
@@ -58,9 +67,9 @@ module Doorkeeper
             refresh_token.resource_owner_id
           end
 
-        if refresh_token_revoked_on_use?
-          attributes[:previous_refresh_token] = refresh_token.refresh_token
-        end
+        attributes[:previous_refresh_token] = refresh_token.refresh_token if refresh_token_revoked_on_use?
+
+        attributes[:resource_indicators] = resource_indicators if Doorkeeper.config.using_resource_indicators?
 
         # RFC6749
         # 1.5.  Refresh Token
